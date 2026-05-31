@@ -413,9 +413,22 @@
                         ...p.compat.map(m => m.toLowerCase())
                     ].join(' ');
                     
-                    // Match if ALL keywords are found somewhere in the combined searchable text
-                    // OR if the full query matches (for part numbers)
-                    return keywords.every(kw => searchFields.includes(kw)) || searchFields.includes(q);
+                    // Match if ANY keyword is found (OR logic) and rank by match count
+                    // Uses partial matching (starts-with) for better singular/plural handling
+                    let matchCount = 0;
+                    keywords.forEach(kw => {
+                        // Try exact match first, then partial match (first 4+ chars)
+                        if (searchFields.includes(kw)) {
+                            matchCount++;
+                        } else if (kw.length >= 4) {
+                            // Check if any search field segment starts with the keyword
+                            const segs = searchFields.split(/\s+/);
+                            if (segs.some(s => s.startsWith(kw) || kw.startsWith(s))) {
+                                matchCount++;
+                            }
+                        }
+                    });
+                    return matchCount >= Math.max(1, Math.floor(keywords.length * 0.4));
                 })
                 .map(([pn, p]) => ({ pn, ...p }));
         }
