@@ -400,14 +400,23 @@
 
         function searchParts(query) {
             const q = query.toLowerCase();
+            // Split query into meaningful keywords (min 2 chars, skip common words)
+            const keywords = q.split(/\s+/).filter(w => w.length >= 2 && !['in','for','the','and','my','to','of','a','an','is','on','at','with','find','show','me','tell','about','part','parts','number','price','cost','need','looking','have','get','can','you','please','what'].includes(w));
+            
             return Object.entries(PARTS_DATABASE)
-                .filter(([pn, p]) =>
-                    p.name.toLowerCase().includes(q) ||
-                    p.desc.toLowerCase().includes(q) ||
-                    p.category.toLowerCase().includes(q) ||
-                    pn.toLowerCase().includes(q) ||
-                    p.compat.some(m => m.toLowerCase().includes(q))
-                )
+                .filter(([pn, p]) => {
+                    const searchFields = [
+                        p.name.toLowerCase(),
+                        p.desc.toLowerCase(),
+                        p.category.toLowerCase(),
+                        pn.toLowerCase(),
+                        ...p.compat.map(m => m.toLowerCase())
+                    ].join(' ');
+                    
+                    // Match if ALL keywords are found somewhere in the combined searchable text
+                    // OR if the full query matches (for part numbers)
+                    return keywords.every(kw => searchFields.includes(kw)) || searchFields.includes(q);
+                })
                 .map(([pn, p]) => ({ pn, ...p }));
         }
 
