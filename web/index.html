@@ -428,7 +428,7 @@
                             }
                         }
                     });
-                    return matchCount >= Math.max(1, Math.floor(keywords.length * 0.4));
+                    return matchCount >= Math.max(2, Math.ceil(keywords.length * 0.5));
                 })
                 .map(([pn, p]) => ({ pn, ...p }));
         }
@@ -437,11 +437,23 @@
             const msg = userMessage.toLowerCase();
             conversationHistory.push({ role: "user", content: userMessage });
 
-            // Handle cart display
+            // ============= ORDER OF OPERATIONS =============
+            // 1. First, try to add to cart (must come before cart display check)
+            const addMatch = msg.match(/add\s+(?:to\s+cart\s+)?(?:part\s+)?([a-z]{2}\d{6})/i);
+            if (addMatch) {
+                const pn = addMatch[1].toUpperCase();
+                const p = PARTS_DATABASE[pn];
+                if (p) {
+                    cart[pn] = (cart[pn] || 0) + 1;
+                    return `✅ Added **${p.name}** (${pn}) to your cart. Current quantity: ${cart[pn]}. You now have ${Object.keys(cart).length} item(s) in your cart.`;
+                }
+            }
+
+            // 2. Handle cart display
             if (msg.includes("cart") || msg.includes("order") || msg.includes("my items")) {
                 const items = Object.entries(cart);
                 if (items.length === 0) {
-                    return "Your cart is currently empty. Would you like to search for parts to add?";
+                    return "Your cart is currently empty. Would you like to search for parts to add? Use the search suggestions above or type what you need.";
                 }
                 let total = 0;
                 let response = "📋 **Your Shopping Cart:**\n\n";
@@ -455,18 +467,7 @@
                 return response;
             }
 
-            // Handle add to cart
-            const addMatch = msg.match(/add\s+(?:to\s+cart\s+)?(?:part\s+)?([a-z]{2}\d{6})/i);
-            if (addMatch) {
-                const pn = addMatch[1].toUpperCase();
-                const p = PARTS_DATABASE[pn];
-                if (p) {
-                    cart[pn] = (cart[pn] || 0) + 1;
-                    return `✅ Added **${p.name}** (${pn}) to your cart. Current quantity: ${cart[pn]}. You now have ${Object.keys(cart).length} item(s) in your cart.`;
-                }
-            }
-
-            // Handle part number lookup
+            // 3. Handle part number lookup
             const pnMatch = msg.match(/([a-z]{2}\d{6})/i);
             if (pnMatch) {
                 const pn = pnMatch[1].toUpperCase();
