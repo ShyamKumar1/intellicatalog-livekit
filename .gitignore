@@ -1,0 +1,11 @@
+livekit-server/
+__pycache__/
+*.pyc
+.env.local
+.env
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+livekit.yaml

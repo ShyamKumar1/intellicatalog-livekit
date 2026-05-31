@@ -1,0 +1,15 @@
+# LiveKit Server Configuration (Template)
+# Copy to livekit.yaml and replace with your actual keys
+port: 7880
+bind_addresses:
+  - "0.0.0.0"
+rtc:
+  port_range_start: 50000
+  port_range_end: 50010
+  use_external_ip: false
+  tcp_port: 7882
+keys:
+  APIyourkeyhere: "your-api-secret-here"
+logging:
+  level: info
+  json: false

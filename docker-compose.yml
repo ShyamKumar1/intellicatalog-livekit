@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  livekit-server:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7880:7880"   # WebRTC
+      - "7881:7881"   # TURN UDP
+      - "7882:7882"   # TURN TCP
+      - "443:443"     # Web
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    environment:
+      - LIVEKIT_KEYS=${LIVEKIT_API_KEY}:${LIVEKIT_API_SECRET}
+    network_mode: "host"
